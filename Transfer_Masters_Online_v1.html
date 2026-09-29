@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Transfer Masters Online</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+:root{--bg:#07111f;--panel:#0d1b2e;--panel2:#11243b;--line:#203b5b;--txt:#f4f7fb;--muted:#9eb0c7;--accent:#35d07f;--accent2:#4da3ff;--gold:#ffd166;--danger:#ff667d}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#102847 0,#07111f 48%,#040a12 100%);font-family:system-ui,-apple-system,Segoe UI,Tahoma,Arial;color:var(--txt);min-height:100vh}
+button,input,select{font:inherit}button{border:0;border-radius:12px;padding:11px 16px;background:var(--accent);color:#04130b;font-weight:800;cursor:pointer}button.secondary{background:#18304b;color:#dceaff;border:1px solid var(--line)}button.gold{background:var(--gold)}button.danger{background:var(--danger)}button:disabled{opacity:.45;cursor:not-allowed}
+.wrap{max-width:1180px;margin:auto;padding:18px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.brand{font-size:25px;font-weight:950}.brand span{color:var(--accent)}
+.status{font-size:12px;color:var(--muted);padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:#0a1727}
+.card{background:linear-gradient(180deg,rgba(17,36,59,.96),rgba(9,24,40,.96));border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 15px 50px #0004;margin-bottom:14px}
+.grid{display:grid;gap:14px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:800px){.g2,.g3,.g4{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}}
+h1,h2,h3{margin:0 0 10px}.muted{color:var(--muted)}.small{font-size:12px}.hidden{display:none!important}
+input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#081728;color:#fff;outline:none}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.stat{padding:13px;border:1px solid var(--line);border-radius:14px;background:#0a1727}.stat b{font-size:22px;display:block}
+.nav{display:flex;gap:8px;overflow:auto;margin-bottom:14px}.nav button{white-space:nowrap;background:#0b1b2d;color:#cfe0f4;border:1px solid var(--line)}.nav button.active{background:var(--accent);color:#04130b}
+.quiz{font-size:18px;line-height:1.8}.clue{padding:12px;border:1px dashed #365779;border-radius:12px;margin:8px 0;background:#0a1727}.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}.opts button{background:#17304b;color:#fff;border:1px solid #2a4b70;text-align:right}.opts button.correct{background:#0d5c39;border-color:#35d07f}.opts button.wrong{background:#612536;border-color:#ff667d}
+.player{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#091827}.player:hover{border-color:#4c759d}.pname{font-weight:850}.fee{color:var(--gold);font-weight:800}.pill{font-size:11px;padding:4px 7px;border-radius:999px;background:#17304b;color:#bcd2e9}
+.market{max-height:560px;overflow:auto;display:grid;gap:8px}.teamlist{display:grid;gap:8px}.teamrow{display:flex;justify-content:space-between;gap:8px;padding:9px;border-bottom:1px solid #17304b}.notice{padding:12px;border-radius:12px;background:#102b3c;border:1px solid #23566a;color:#ccecf2}.warn{background:#382b13;border-color:#70591e;color:#ffe7a4}
+.loader{display:flex;gap:10px;align-items:center}.dot{width:9px;height:9px;border-radius:50%;background:var(--accent);animation:p 1s infinite alternate}@keyframes p{to{opacity:.2;transform:scale(.6)}}
+table{width:100%;border-collapse:collapse}td,th{padding:10px;border-bottom:1px solid #1c3551;text-align:right}th{color:#9fb4cc}.score{font-size:30px;font-weight:950}
+footer{color:#7288a0;font-size:11px;text-align:center;padding:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">⚽ Transfer <span>Masters</span> Online</div>
+    <div id="status" class="status">جاري التحميل...</div>
+  </div>
+
+  <section id="home" class="card">
+    <h1>لعبة انتقالات حقيقية بينك وبين أصحابك</h1>
+    <p class="muted">خمن اللاعب من انتقالاته، اكسب ميزانية، ابنِ فريقك، ثم نافس في الدوري.</p>
+    <div class="grid g2">
+      <div class="card" style="margin:0">
+        <h3>🎮 إنشاء غرفة</h3>
+        <input id="hostName" placeholder="اسمك" maxlength="18">
+        <div style="height:8px"></div>
+        <select id="hostPlayers"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>
+        <div style="height:8px"></div><button onclick="createRoom()">إنشاء الغرفة</button>
+        <p id="hostCode" class="muted small"></p>
+      </div>
+      <div class="card" style="margin:0">
+        <h3>📱 دخول لغرفة</h3>
+        <input id="joinName" placeholder="اسمك" maxlength="18">
+        <div style="height:8px"></div>
+        <input id="roomCode" placeholder="كود الغرفة">
+        <div style="height:8px"></div><button class="secondary" onclick="joinRoom()">دخول</button>
+        <p class="muted small">بعد نشر الملف على الإنترنت، كل لاعب يفتحه من موبايله ويدخل نفس الكود.</p>
+      </div>
+    </div>
+    <div class="notice" style="margin-top:14px">
+      <b>مصدر البيانات:</b> قاعدة انتقالات أوروبية مبنية من بيانات Transfermarkt، وتشمل حقول اللاعب والناديين والموسم والرسوم؛ اللعبة تستخدم الرسوم المسجلة عندما تكون متاحة، وتعرض «مجانًا/إعارة/غير معلن» بدل اختراع رقم.
+    </div>
+  </section>
+
+  <section id="lobby" class="card hidden">
+    <div class="row" style="justify-content:space-between">
+      <div><h2>غرفة اللعب</h2><div class="muted">الكود: <b id="roomLabel"></b></div></div>
+      <button class="secondary" onclick="copyCode()">نسخ الكود</button>
+    </div>
+    <div id="playersLobby" class="grid g3" style="margin-top:12px"></div>
+    <div id="hostControls" class="hidden" style="margin-top:14px">
+      <button onclick="startGame()">بدء اللعبة</button>
+    </div>
+    <p id="lobbyMsg" class="muted"></p>
+  </section>
+
+  <main id="game" class="hidden">
+    <div class="nav">
+      <button id="nQuiz" onclick="showTab('quiz')">🧠 التخمين</button>
+      <button id="nMarket" onclick="showTab('market')">💰 السوق</button>
+      <button id="nTeam" onclick="showTab('team')">👕 فريقي</button>
+      <button id="nLeague" onclick="showTab('league')">🏆 الدوري</button>
+    </div>
+
+    <section id="quizTab" class="card">
+      <div class="row" style="justify-content:space-between">
+        <div><h2>🧠 خمن اللاعب</h2><div id="quizRound" class="muted"></div></div>
+        <div class="stat"><span class="small">ميزانيتي</span><b id="myBudget">0€</b></div>
+      </div>
+      <div id="quizBox" style="margin-top:12px"></div>
+    </section>
+
+    <section id="marketTab" class="card hidden">
+      <div class="row" style="justify-content:space-between">
+        <div><h2>💰 سوق الانتقالات</h2><p class="muted small">الأسعار هنا هي رسوم الانتقال التاريخية المسجلة في البيانات، وليست تقييمات السوق.</p></div>
+        <input id="marketSearch" style="max-width:280px" placeholder="ابحث عن لاعب..." oninput="renderMarket()">
+      </div>
+      <div id="marketBox" class="market" style="margin-top:12px"></div>
+    </section>
+
+    <section id="teamTab" class="card hidden">
+      <div class="row" style="justify-content:space-between">
+        <div><h2>👕 فريقي</h2><div class="muted">الحد الأقصى 11 لاعبًا</div></div>
+        <div class="stat"><span class="small">قوة الفريق</span><b id="power">0</b></div>
+      </div>
+      <div id="teamBox" class="teamlist" style="margin-top:12px"></div>
+    </section>
+
+    <section id="leagueTab" class="card hidden">
+      <h2>🏆 الدوري</h2>
+      <p class="muted">كل مباراة تُحسم من قوة التشكيلة + الانسجام + عامل عشوائي صغير.</p>
+      <div id="leagueBox"></div>
+    </section>
+  </main>
+
+  <footer>Transfer Masters Online — نسخة تجريبية قابلة للتوسعة. بيانات الانتقالات الخارجية قد تتطلب اتصال إنترنت.</footer>
+</div>
+
+<script>
+const DATA_URLS=[
+'https://raw.githubusercontent.com/ewenme/transfers/master/data/premier-league.csv',
+'https://raw.githubusercontent.com/ewenme/transfers/master/data/primera-division.csv',
+'https://raw.githubusercontent.com/ewenme/transfers/master/data/1-bundesliga.csv',
+'https://raw.githubusercontent.com/ewenme/transfers/master/data/serie-a.csv',
+'https://raw.githubusercontent.com/ewenme/transfers/master/data/ligue-1.csv',
+'https://raw.githubusercontent.com/ewenme/transfers/master/data/liga-nos.csv',
+'https://raw.githubusercontent.com/ewenme/transfers/master/data/eredivisie.csv',
+'https://raw.githubusercontent.com/ewenme/transfers/master/data/premier-liga.csv'
+];
+
+const FALLBACK=[
+["Cristiano Ronaldo","Sporting CP","Manchester United",2003,19.00,"Forward"],["Cristiano Ronaldo","Manchester United","Real Madrid",2009,94.00,"Forward"],["Cristiano Ronaldo","Real Madrid","Juventus",2018,117.00,"Forward"],
+["Neymar","Santos","Barcelona",2013,88.20,"Forward"],["Neymar","Barcelona","Paris Saint-Germain",2017,222.00,"Forward"],["Neymar","Paris Saint-Germain","Al Hilal",2023,90.00,"Forward"],
+["Gareth Bale","Southampton","Tottenham",2007,14.70,"Winger"],["Gareth Bale","Tottenham","Real Madrid",2013,101.00,"Winger"],
+["Kylian Mbappé","Monaco","Paris Saint-Germain",2017,180.00,"Forward"],["Kylian Mbappé","Paris Saint-Germain","Real Madrid",2024,0,"Forward"],
+["Jude Bellingham","Birmingham City","Borussia Dortmund",2020,30.15,"Midfielder"],["Jude Bellingham","Borussia Dortmund","Real Madrid",2023,127.00,"Midfielder"],
+["Zinedine Zidane","Bordeaux","Juventus",1996,3.50,"Midfielder"],["Zinedine Zidane","Juventus","Real Madrid",2001,77.50,"Midfielder"],
+["Luis Suárez","Ajax","Liverpool",2011,26.50,"Forward"],["Luis Suárez","Liverpool","Barcelona",2014,81.72,"Forward"],["Luis Suárez","Barcelona","Atlético Madrid",2020,9.00,"Forward"],
+["Ronaldinho","Paris Saint-Germain","Barcelona",2003,32.25,"Midfielder"],["Ronaldinho","Barcelona","AC Milan",2008,24.00,"Midfielder"],
+["Luka Modrić","Tottenham","Real Madrid",2012,35.00,"Midfielder"],["Toni Kroos","Bayern Munich","Real Madrid",2014,25.00,"Midfielder"],
+["Erling Haaland","Red Bull Salzburg","Borussia Dortmund",2020,60.00,"Forward"],["Erling Haaland","Borussia Dortmund","Manchester City",2022,60.00,"Forward"],
+["Mohamed Salah","FC Basel","Chelsea",2014,16.50,"Winger"],["Mohamed Salah","Chelsea","Roma",2016,15.00,"Winger"],["Mohamed Salah","Roma","Liverpool",2017,42.00,"Winger"],
+["Kevin De Bruyne","Genk","Chelsea",2012,8.00,"Midfielder"],["Kevin De Bruyne","Wolfsburg","Manchester City",2015,76.00,"Midfielder"],
+["Eden Hazard","Lille","Chelsea",2012,35.00,"Winger"],["Eden Hazard","Chelsea","Real Madrid",2019,120.80,"Winger"],
+["Robert Lewandowski","Lech Poznań","Borussia Dortmund",2010,4.75,"Forward"],["Robert Lewandowski","Borussia Dortmund","Bayern Munich",2014,0,"Forward"],["Robert Lewandowski","Bayern Munich","Barcelona",2022,45.00,"Forward"],
+["Sergio Ramos","Sevilla","Real Madrid",2005,27.00,"Defender"],["Sergio Ramos","Real Madrid","Paris Saint-Germain",2021,0,"Defender"],
+["Thibaut Courtois","Genk","Chelsea",2011,9.00,"Goalkeeper"],["Thibaut Courtois","Chelsea","Real Madrid",2018,35.00,"Goalkeeper"],
+["Virgil van Dijk","Southampton","Liverpool",2018,84.65,"Defender"],["Harry Kane","Tottenham","Bayern Munich",2023,95.00,"Forward"],
+["Antoine Griezmann","Real Sociedad","Atlético Madrid",2014,30.00,"Forward"],["Antoine Griezmann","Atlético Madrid","Barcelona",2019,120.00,"Forward"],
+["Romelu Lukaku","Everton","Manchester United",2017,84.70,"Forward"],["Romelu Lukaku","Inter","Chelsea",2021,113.00,"Forward"],
+["Paul Pogba","Juventus","Manchester United",2016,105.00,"Midfielder"],["Jack Grealish","Aston Villa","Manchester City",2021,117.50,"Winger"],
+["Riyad Mahrez","Leicester City","Manchester City",2018,67.80,"Winger"],["Declan Rice","West Ham","Arsenal",2023,116.60,"Midfielder"],
+["Kai Havertz","Bayer Leverkusen","Chelsea",2020,80.00,"Midfielder"],["Kai Havertz","Chelsea","Arsenal",2023,75.00,"Forward"],
+["Zlatan Ibrahimović","Ajax","Juventus",2004,16.00,"Forward"],["Zlatan Ibrahimović","Inter","Barcelona",2009,69.50,"Forward"],["Zlatan Ibrahimović","Barcelona","AC Milan",2010,24.00,"Forward"],
+["Andrea Pirlo","Inter","AC Milan",2001,18.00,"Midfielder"],["Andrea Pirlo","AC Milan","Juventus",2011,0,"Midfielder"],
+["Kaká","AC Milan","Real Madrid",2009,67.00,"Midfielder"],["Thierry Henry","Arsenal","Barcelona",2007,24.00,"Forward"],
+["Cesc Fàbregas","Arsenal","Barcelona",2011,34.00,"Midfielder"],["Cesc Fàbregas","Barcelona","Chelsea",2014,33.00,"Midfielder"],
+["Ángel Di María","Real Madrid","Manchester United",2014,75.00,"Winger"],["Ángel Di María","Manchester United","Paris Saint-Germain",2015,63.00,"Winger"],
+["Sadio Mané","Southampton","Liverpool",2016,41.20,"Winger"],["Sadio Mané","Liverpool","Bayern Munich",2022,32.00,"Winger"],
+["Kevin Keegan","Hamburg","Liverpool",1977,0,"Forward"],["Michael Owen","Liverpool","Real Madrid",2004,9.00,"Forward"],
+["Xabi Alonso","Liverpool","Real Madrid",2009,34.50,"Midfielder"],["David Beckham","Manchester United","Real Madrid",2003,37.00,"Midfielder"],
+["Carlos Tevez","Manchester United","Manchester City",2009,29.00,"Forward"],["Yaya Touré","Barcelona","Manchester City",2010,30.00,"Midfielder"],
+["Fernando Torres","Liverpool","Chelsea",2011,58.50,"Forward"],["Gonzalo Higuaín","Napoli","Juventus",2016,90.00,"Forward"],
+["Alisson","Roma","Liverpool",2018,62.50,"Goalkeeper"],["Edinson Cavani","Napoli","Paris Saint-Germain",2013,64.50,"Forward"],
+["Achraf Hakimi","Inter","Paris Saint-Germain",2021,68.00,"Defender"],["Khvicha Kvaratskhelia","Napoli","Paris Saint-Germain",2025,70.00,"Winger"]
+];
+
+let transfers=[], players=[], peer=null, conns=[], isHost=false, room="", myId="", game={
+ started:false,round:0,budget:{},teams:{},answers:{},players:[],max:2,quiz:null,table:[]
+};
+
+const $=id=>document.getElementById(id);
+function money(n){if(!n)return "مجانًا";return "€"+Number(n).toFixed(1).replace(".0","")+"M"}
+function setStatus(t){$("status").textContent=t}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+
+function parseCSV(text){
+ const lines=text.split(/\r?\n/).filter(Boolean); if(!lines.length)return[];
+ const parse=l=>{let a=[],cur="",q=false;for(let i=0;i<l.length;i++){let c=l[i];if(c=='"'){if(q&&l[i+1]=='"'){cur+='"';i++}else q=!q}else if(c==','&&!q){a.push(cur);cur=""}else cur+=c}a.push(cur);return a};
+ const h=parse(lines[0]).map(x=>x.trim());
+ return lines.slice(1).map(l=>{let v=parse(l),o={};h.forEach((k,i)=>o[k]=v[i]??"");return o});
+}
+async function loadData(){
+ setStatus("تحميل قاعدة الانتقالات...");
+ let all=[];
+ try{
+   const res=await Promise.all(DATA_URLS.map(u=>fetch(u).then(r=>r.text())));
+   res.forEach(t=>all.push(...parseCSV(t)));
+ }catch(e){console.warn(e)}
+ if(all.length){
+   transfers=all.map(r=>({
+     name:r.player_name,from:r.transfer_movement==="in"?r.club_involved_name:r.club_name,
+     to:r.transfer_movement==="in"?r.club_name:r.club_involved_name,
+     year:r.year,fee:parseFloat(r.fee_cleaned)||0,pos:r.position||"Player"
+   })).filter(x=>x.name&&x.from&&x.to);
+ }else transfers=FALLBACK.map(x=>({name:x[0],from:x[1],to:x[2],year:x[3],fee:x[4],pos:x[5]}));
+ const map=new Map();
+ transfers.forEach(t=>{if(!map.has(t.name))map.set(t.name,[]);map.get(t.name).push(t)});
+ players=[...map.entries()].map(([name,h])=>({name,history:h.sort((a,b)=>Number(a.year)-Number(b.year)),pos:h[h.length-1].pos})).filter(p=>p.history.length>=1);
+ // keep a large playable pool while ensuring recognizable stars are retained
+ const famous=new Set(FALLBACK.map(x=>x[0]));
+ players.sort((a,b)=>(famous.has(b.name)-famous.has(a.name))||b.history.length-a.history.length);
+ setStatus(`${players.length.toLocaleString()} لاعب متاح`);
+}
+
+function makeQuiz(){
+ if(!players.length)return;
+ const pool=players.filter(p=>p.history.length>=2);
+ const p=pool[Math.floor(Math.random()*pool.length)];
+ const h=p.history;
+ const picks=[];
+ const clues=[
+  `بدأت قصة اللاعب من ${h[0].from} ثم انتقل إلى ${h[0].to} في ${h[0].year}.`,
+  h[1]?`بعد ذلك انتقل من ${h[1].from} إلى ${h[1].to} في ${h[1].year}.`: `لعب أيضًا مع ${h[0].to}.`,
+  h[2]?`ومن انتقالاته: ${h[2].from} → ${h[2].to} في ${h[2].year}.`:`مركزه المسجل: ${p.pos}.`,
+  `من رسوم انتقالاته المسجلة: ${h.filter(x=>x.fee>0).sort((a,b)=>b.fee-a.fee)[0]?money(h.filter(x=>x.fee>0).sort((a,b)=>b.fee-a.fee)[0].fee):"لا توجد رسوم معلنة"}.`
+ ];
+ const names=[p.name];
+ while(names.length<4){let q=pool[Math.floor(Math.random()*pool.length)].name;if(!names.includes(q))names.push(q)}
+ names.sort(()=>Math.random()-.5);
+ return {player:p,clues,opts:names};
+}
+function renderQuiz(){
+ if(!game.quiz)game.quiz=makeQuiz();
+ const q=game.quiz;
+ $("quizRound").textContent=`الجولة ${game.round+1} — 25M لأول تلميح، ثم 20M، 15M، 10M`;
+ $("quizBox").innerHTML=`<div class="quiz">${q.clues.map((c,i)=>`<div class="clue"><b>التلميح ${i+1}</b> — ${esc(c)}</div>`).join("")}
+ <div class="opts">${q.opts.map(o=>`<button onclick="answer('${encodeURIComponent(o)}')">${esc(o)}</button>`).join("")}</div>
+ <p id="quizNote" class="muted small">اختار إجابة واحدة. بعد الإجابة تنتقل الجولة للجميع عندما يستضيفها صاحب الغرفة.</p></div>`;
+}
+function answer(enc){
+ const a=decodeURIComponent(enc), q=game.quiz;
+ const ok=a===q.player.name, reward=[25,20,15,10][Math.min(3,game.round%4)];
+ game.budget[myId]=(game.budget[myId]||0)+(ok?reward:0);
+ $("quizNote").innerHTML=ok?`<span style="color:var(--accent)">صح! +${reward}M</span> — اللاعب هو ${esc(q.player.name)}.`:`<span style="color:var(--danger)">غلط.</span> اللاعب هو ${esc(q.player.name)}.`;
+ game.answers[myId]=ok;
+ broadcast();
+ renderAll();
+ if(isHost){setTimeout(()=>{game.round++;game.quiz=makeQuiz();game.answers={};broadcast();renderAll()},1800)}
+}
+function renderMarket(){
+ const s=($("marketSearch").value||"").toLowerCase();
+ let arr=players.filter(p=>p.name.toLowerCase().includes(s)).slice(0,250);
+ $("marketBox").innerHTML=arr.map(p=>{
+   const paid=p.history.filter(x=>x.fee>0).sort((a,b)=>b.fee-a.fee)[0], price=paid?.fee||0;
+   const owned=game.teams[myId]?.some(x=>x.name===p.name);
+   return `<div class="player"><div><div class="pname">${esc(p.name)} <span class="pill">${esc(p.pos)}</span></div>
+   <div class="muted small">${p.history.slice(-3).map(x=>`${esc(x.from)} → ${esc(x.to)} (${x.year})`).join(" • ")}</div></div>
+   <div style="text-align:left"><div class="fee">${money(price)}</div><button ${owned||game.budget[myId]<price?"disabled":""} onclick="buy('${encodeURIComponent(p.name)}')">${owned?"تم شراؤه":"شراء"}</button></div></div>`
+ }).join("")||`<div class="muted">لا يوجد لاعب.</div>`;
+}
+function buy(enc){
+ const name=decodeURIComponent(enc),p=players.find(x=>x.name===name),paid=p.history.filter(x=>x.fee>0).sort((a,b)=>b.fee-a.fee)[0],price=paid?.fee||0;
+ if(!p||game.budget[myId]<price||(game.teams[myId]||[]).length>=11)return;
+ game.budget[myId]-=price;(game.teams[myId]??=[]).push(p);broadcast();renderAll();
+}
+function renderTeam(){
+ const t=game.teams[myId]||[], power=t.reduce((a,p)=>a+(p.history.length*8+Math.min(60,(p.history.filter(x=>x.fee>0).sort((a,b)=>b.fee-a.fee)[0]?.fee||5)/2)),0);
+ $("power").textContent=Math.round(power);
+ $("teamBox").innerHTML=t.length?t.map((p,i)=>`<div class="teamrow"><span><b>${i+1}. ${esc(p.name)}</b><span class="pill">${esc(p.pos)}</span></span><span class="muted">${p.history.length} انتقال</span></div>`).join(""):`<div class="muted">لسه ما اشتريتش لاعبين.</div>`;
+}
+function renderLeague(){
+ const arr=game.players.map(p=>({p,score:(game.teams[p.id]||[]).reduce((a,x)=>a+x.history.length*8,0)+Math.random()*10})).sort((a,b)=>b.score-a.score);
+ $("leagueBox").innerHTML=`<table><tr><th>#</th><th>اللاعب</th><th>قوة</th><th>ميزانية</th></tr>${arr.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.p.name)}</td><td>${Math.round(x.score)}</td><td>${money(game.budget[x.p.id]||0)}</td></tr>`).join("")}</table>`;
+}
+function renderAll(){ $("myBudget").textContent=money(game.budget[myId]||0);renderQuiz();renderMarket();renderTeam();renderLeague(); }
+function showTab(t){
+ ["quiz","market","team","league"].forEach(x=>{$(x+"Tab").classList.toggle("hidden",x!==t);$("n"+x[0].toUpperCase()+x.slice(1)).classList.toggle("active",x===t)});
+}
+function renderLobby(){
+ $("playersLobby").innerHTML=game.players.map((p,i)=>`<div class="stat"><b>${i+1}. ${esc(p.name)}</b><span class="muted small">${p.id===myId?"أنت":(p.connected?"متصل":"بانتظار الاتصال")}</span></div>`).join("");
+ $("hostControls").classList.toggle("hidden",!isHost);
+ $("lobbyMsg").textContent=isHost?"ابعت الكود لأصحابك. لما يدخلوا اضغط بدء اللعبة.":"مستني صاحب الغرفة يبدأ اللعبة...";
+}
+function broadcast(){
+ if(!isHost)return;
+ const msg=JSON.stringify({type:"state",game});
+ conns.forEach(c=>{try{c.send(msg)}catch(e){}});
+}
+function attach(c){
+ conns.push(c);
+ c.on("open",()=>c.send(JSON.stringify({type:"init",game})));
+ c.on("data",raw=>{
+   let m;try{m=JSON.parse(raw)}catch(e){return}
+   if(m.type==="hello"&&isHost){
+     if(game.players.length<game.max&&!game.players.some(p=>p.id===m.id)){
+       game.players.push({id:m.id,name:m.name,connected:true});game.budget[m.id]=25;game.teams[m.id]=[];broadcast();renderLobby();
+     }
+   } else if(m.type==="state"&&!isHost){game=m.game;renderAll();renderLobby();if(game.started){$("lobby").classList.add("hidden");$("game").classList.remove("hidden")}}
+ });
+ c.on("close",()=>{});
+}
+function createRoom(){
+ isHost=true;const name=$("hostName").value.trim()||"لاعب 1";room=Math.random().toString(36).slice(2,7).toUpperCase();myId="H-"+room;
+ peer=new Peer("tm-"+room.toLowerCase());
+ peer.on("open",()=>{game.max=Number($("hostPlayers").value);game.players=[{id:myId,name,connected:true}];game.budget[myId]=25;game.teams[myId]=[];$("hostCode").textContent=`كود الغرفة: ${room}`;openLobby()});
+ peer.on("connection",attach);peer.on("error",e=>{setStatus("تعذر إنشاء الاتصال");console.error(e)});
+}
+function joinRoom(){
+ isHost=false;room=$("roomCode").value.trim().toUpperCase();const name=$("joinName").value.trim()||"لاعب";
+ if(!room)return;
+ peer=new Peer();
+ peer.on("open",id=>{myId=id;const c=peer.connect("tm-"+room.toLowerCase(),{reliable:true});conns=[c];c.on("open",()=>c.send(JSON.stringify({type:"hello",id,name})));c.on("data",raw=>{let m;try{m=JSON.parse(raw)}catch(e){return}if(m.type==="init"||m.type==="state"){game=m.game;renderLobby();if(game.started){$("lobby").classList.add("hidden");$("game").classList.remove("hidden");renderAll()}}})});
+ peer.on("error",e=>{alert("لم يتم العثور على الغرفة. تأكد من الكود وأن صاحب الغرفة فاتح الصفحة.")});
+}
+function openLobby(){$("home").classList.add("hidden");$("lobby").classList.remove("hidden");$("roomLabel").textContent=room;renderLobby()}
+function startGame(){if(!isHost)return;if(game.players.length<2){alert("لازم لاعبين على الأقل.");return}game.started=true;game.round=0;game.quiz=makeQuiz();broadcast();$("lobby").classList.add("hidden");$("game").classList.remove("hidden");renderAll()}
+function copyCode(){navigator.clipboard?.writeText(room);alert("تم نسخ الكود: "+room)}
+loadData().then(()=>setStatus("جاهز للعب"));
+</script>
+</body>
+</html>
